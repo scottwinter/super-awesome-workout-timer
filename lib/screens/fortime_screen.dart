@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
-import 'package:audio_session/audio_session.dart';
+import 'package:flutter_soloud/flutter_soloud.dart';
 
 class ForTimeScreen extends StatefulWidget {
   const ForTimeScreen({super.key});
@@ -22,34 +21,46 @@ class _ForTimeScreenState extends State<ForTimeScreen> {
   bool _isCountdown = false;
   int _countdownSeconds = 10;
   bool _isTimerStarted = false; // To track if the timer has ever been started
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  late final SoLoud _soloud;
+  AudioSource? _beepSound;
+  AudioSource? _goSound;
 
   @override
   void initState() {
     super.initState();
-    _initAudioSession();
+    _initSoLoud();
   }
 
-  void _initAudioSession() async {
-    final session = await AudioSession.instance;
-    await session.configure(const AudioSessionConfiguration.speech());
+  Future<void> _initSoLoud() async {
+    _soloud = SoLoud.instance;
+    await _soloud.init();
+    await _loadSounds();
+  }
+
+  Future<void> _loadSounds() async {
+    _beepSound = await _soloud.loadAsset('assets/sounds/count-beep.mp3');
+    _goSound = await _soloud.loadAsset('assets/sounds/go-beep.mp3');
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     _countdownTimer?.cancel();
-    _audioPlayer.dispose();
+    _soloud.deinit();
     WakelockPlus.disable();
     super.dispose();
   }
 
   void _playSound(String soundPath) async {
-    final session = await AudioSession.instance;
-    await session.setActive(true);
-    _audioPlayer.play(AssetSource(soundPath)).then((_) {
-      session.setActive(false);
-    });
+    if (soundPath.contains('count-beep')) {
+      if (_beepSound != null) {
+        _soloud.play(_beepSound!);
+      }
+    } else if (soundPath.contains('go-beep')) {
+      if (_goSound != null) {
+        _soloud.play(_goSound!);
+      }
+    }
   }
 
   void _startTimer() {

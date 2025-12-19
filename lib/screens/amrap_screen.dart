@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:flutter/services.dart';
-import 'package:audio_session/audio_session.dart' as audio_session;
+import 'package:flutter_soloud/flutter_soloud.dart';
 
 class AmrapScreen extends StatefulWidget {
   const AmrapScreen({super.key});
@@ -41,36 +40,28 @@ class _AmrapScreenState extends State<AmrapScreen> {
 
   late FixedExtentScrollController _minutesController;
 
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  late final SoLoud _soloud;
+  AudioSource? _beepSound;
+  AudioSource? _goSound;
 
   @override
   void initState() {
     super.initState();
-    _initAudioSession();
-
+    _initSoLoud();
     _minutesController = FixedExtentScrollController(
       initialItem: 30 - _totalMinutes,
     );
   }
 
-  void _initAudioSession() async {
-    final session = await audio_session.AudioSession.instance;
-    // await session.configure(const AudioSessionConfiguration.speech());
+  Future<void> _initSoLoud() async {
+    _soloud = SoLoud.instance;
+    await _soloud.init();
+    await _loadSounds();
+  }
 
-    await session.configure(audio_session.AudioSessionConfiguration(
-      // avAudioSessionCategory: audio_session.AVAudioSessionCategory.playback,
-      // avAudioSessionCategoryOptions: audio_session.AVAudioSessionCategoryOptions.allowBluetooth,
-      // avAudioSessionMode: audio_session.AVAudioSessionMode.defaultMode,
-      // avAudioSessionRouteSharingPolicy: audio_session.AVAudioSessionRouteSharingPolicy.defaultPolicy,
-      // avAudioSessionSetActiveOptions: audio_session.AVAudioSessionSetActiveOptions.none,
-      // androidAudioAttributes: const audio_session.AndroidAudioAttributes(
-      //   contentType: audio_session.AndroidAudioContentType.unknown,
-      //   flags: audio_session.AndroidAudioFlags.none,
-      //   usage: audio_session.AndroidAudioUsage.notification,
-      // ),
-      androidAudioFocusGainType: audio_session.AndroidAudioFocusGainType.gain,
-      androidWillPauseWhenDucked: false,
-    ));
+  Future<void> _loadSounds() async {
+    _beepSound = await _soloud.loadAsset('assets/sounds/count-beep.mp3');
+    _goSound = await _soloud.loadAsset('assets/sounds/go-beep.mp3');
   }
 
   @override
@@ -81,7 +72,7 @@ class _AmrapScreenState extends State<AmrapScreen> {
 
     _minutesController.dispose();
 
-    _audioPlayer.dispose();
+    _soloud.deinit();
 
     WakelockPlus.disable();
 
@@ -89,11 +80,15 @@ class _AmrapScreenState extends State<AmrapScreen> {
   }
 
   void _playSound(String soundPath) async {
-    final session = await audio_session.AudioSession.instance;
-    await session.setActive(true);
-    _audioPlayer.play(AssetSource(soundPath)).then((_) {
-      session.setActive(false);
-    });
+    if (soundPath.contains('count-beep')) {
+      if (_beepSound != null) {
+        _soloud.play(_beepSound!);
+      }
+    } else if (soundPath.contains('go-beep')) {
+      if (_goSound != null) {
+        _soloud.play(_goSound!);
+      }
+    }
   }
 
   void _startTimer() {
