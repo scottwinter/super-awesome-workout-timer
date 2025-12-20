@@ -34,6 +34,7 @@ class _ForTimeScreenState extends State<ForTimeScreen> {
   Future<void> _initSoLoud() async {
     _soloud = SoLoud.instance;
     await _soloud.init();
+    _soloud.setGlobalVolume(4.0);
     await _loadSounds();
   }
 

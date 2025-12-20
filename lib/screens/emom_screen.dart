@@ -46,6 +46,7 @@ class _EmomScreenState extends State<EmomScreen> {
   Future<void> _initSoLoud() async {
     _soloud = SoLoud.instance;
     await _soloud.init();
+    _soloud.setGlobalVolume(4.0);
     await _loadSounds();
   }
 
@@ -146,10 +147,14 @@ class _EmomScreenState extends State<EmomScreen> {
   void _startMainPeriodicTimer() {
     _mainTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemainingInMinute > 1) {
+        if (_secondsRemainingInMinute <= 4) {
+          // Beep for 3, 2, 1
+          _playSound('sounds/count-beep.mp3');
+        }
         setState(() => _secondsRemainingInMinute--);
       } else {
         // End of a minute
-
+        _playSound('sounds/go-beep.mp3');
         if (_currentMinute < _initialMinutes) {
           setState(() {
             _currentMinute++;

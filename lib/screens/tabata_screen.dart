@@ -61,6 +61,7 @@ class _TabataScreenState extends State<TabataScreen> {
   Future<void> _initSoLoud() async {
     _soloud = SoLoud.instance;
     await _soloud.init();
+    _soloud.setGlobalVolume(4.0);
     await _loadSounds();
   }
 
@@ -107,7 +108,7 @@ class _TabataScreenState extends State<TabataScreen> {
   void _startCountdown() {
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_countdownSeconds > 1) {
-        if (_countdownSeconds <= 5) {
+        if (_countdownSeconds <= 4) {
           // Beep for 3, 2, 1
           _playSound('sounds/count-beep.mp3');
         } 
@@ -170,7 +171,7 @@ class _TabataScreenState extends State<TabataScreen> {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 1) {
         setState(() => _secondsRemaining--);
-        if (_secondsRemaining <= 4) {
+        if (_secondsRemaining <= 3) {
           _playSound('sounds/count-beep.mp3');
         }
       } else {
