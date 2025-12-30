@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:super_awesome_workout_timer/configs/constants.dart';
 import 'package:super_awesome_workout_timer/screens/home_screen.dart';
 
 void main() async {
@@ -17,12 +18,12 @@ class WorkoutTimerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Workout Timer',
+      title: AppConstants.appShortTitle,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.lightBlue,
+          seedColor: AppConstants.seedColor,
           brightness: Brightness.dark,
         ),
         useMaterial3: true,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:flutter/services.dart';
+import 'package:super_awesome_workout_timer/configs/constants.dart';
 import 'package:super_awesome_workout_timer/services/sound_effects.dart';
 import 'package:super_awesome_workout_timer/widgets/wheel_selector.dart';
 
@@ -14,31 +15,21 @@ class AmrapScreen extends StatefulWidget {
 
 class _AmrapScreenState extends State<AmrapScreen> {
   // --- Settings ---
-
-  int _totalMinutes = 10;
+  int _totalMinutes = AppConstants.defaultAmrapMinutes;
 
   // --- State ---
-
   Timer? _mainTimer;
-
   bool _isTimerActive = false;
-
   bool _isTimerStarted = false; // To track if the timer has ever been started
-
   bool _isFinished = false;
-
   int _elapsedSeconds = 0;
 
   // --- Countdown State ---
-
   Timer? _countdownTimer;
-
   bool _isCountdown = false;
-
-  int _countdownSeconds = 10;
+  int _countdownSeconds = AppConstants.defaultCountdownSeconds;
 
   // --- Controllers & Players ---
-
   late FixedExtentScrollController _minutesController;
 
   @override
@@ -53,29 +44,34 @@ class _AmrapScreenState extends State<AmrapScreen> {
   @override
   void dispose() {
     _mainTimer?.cancel();
-
     _countdownTimer?.cancel();
-
     _minutesController.dispose();
-
     SoundEffects().dispose();
-
     WakelockPlus.disable();
-
     super.dispose();
   }
 
-  void _startTimer() {
-    setState(() {
-      _isTimerStarted = true;
+    void _startTimer() {
 
-      _isCountdown = true;
+      setState(() {
 
-      _countdownSeconds = 10;
-    });
+        _isTimerStarted = true;
 
-    _startCountdown();
-  }
+  
+
+        _isCountdown = true;
+
+  
+
+        _countdownSeconds = AppConstants.defaultCountdownSeconds;
+
+      });
+
+  
+
+      _startCountdown();
+
+    }
 
   void _startCountdown() {
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -88,11 +84,8 @@ class _AmrapScreenState extends State<AmrapScreen> {
         setState(() => _countdownSeconds--);
       } else {
         _countdownTimer?.cancel();
-
         setState(() => _isCountdown = false);
-
         SoundEffects().play(SoundEffect.go);
-
         _startMainTimer();
       }
     });
@@ -103,9 +96,7 @@ class _AmrapScreenState extends State<AmrapScreen> {
 
     setState(() {
       _elapsedSeconds = 0;
-
       _isTimerActive = true;
-
       _isFinished = false;
     });
     _startMainPeriodicTimer();
@@ -113,9 +104,7 @@ class _AmrapScreenState extends State<AmrapScreen> {
 
   void _pauseTimer() {
     _mainTimer?.cancel();
-
     WakelockPlus.disable();
-
     setState(() {
       _isTimerActive = false;
     });
@@ -133,20 +122,14 @@ class _AmrapScreenState extends State<AmrapScreen> {
 
   void _resetTimer() {
     _mainTimer?.cancel();
-
     _countdownTimer?.cancel();
-
     WakelockPlus.disable();
 
     setState(() {
       _isTimerStarted = false;
-
       _isTimerActive = false;
-
       _isFinished = false;
-
       _elapsedSeconds = 0;
-
       _isCountdown = false;
     });
   }
@@ -163,7 +146,6 @@ class _AmrapScreenState extends State<AmrapScreen> {
 
         setState(() {
           _isTimerActive = false;
-
           _isFinished = true;
         });
       }
@@ -192,17 +174,22 @@ class _AmrapScreenState extends State<AmrapScreen> {
                 children: [
                   Text(
                     'Get Ready...',
-
                     style: Theme.of(context).textTheme.displaySmall,
                   ),
 
-                  Text(
-                    '$_countdownSeconds',
+                                    Text(
 
-                    style: Theme.of(
-                      context,
-                    ).textTheme.displayLarge?.copyWith(fontSize: 150),
-                  ),
+                                      '$_countdownSeconds',
+
+                  
+
+                                      style: Theme.of(
+
+                                        context,
+
+                                      ).textTheme.displayLarge?.copyWith(fontSize: AppConstants.countdownFontSize),
+
+                                    ),
                 ],
               )
             else if (!_isTimerStarted)
@@ -210,14 +197,11 @@ class _AmrapScreenState extends State<AmrapScreen> {
                 children: [
                   Text(
                     'As Many Rounds As Possible',
-
                     style: Theme.of(context).textTheme.headlineMedium,
-
                     textAlign: TextAlign.center,
                   ),
 
                   const SizedBox(height: 20),
-
                   WheelSelector(
                     label: 'Set Duration (minutes)',
                     controller: _minutesController,
@@ -235,18 +219,16 @@ class _AmrapScreenState extends State<AmrapScreen> {
                 children: [
                   Text(
                     _isFinished ? 'DONE' : 'Time Remaining',
-
                     style: Theme.of(context).textTheme.displaySmall,
                   ),
 
                   Text(
                     _formatTime((_totalMinutes * 60) - _elapsedSeconds),
-
-                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      fontSize: 100,
-
-                      color: _isFinished ? Colors.red : null,
-                    ),
+                                        style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                                          fontSize: AppConstants.timerFontSizeLarge,
+                    
+                                          color: _isFinished ? Colors.red : null,
+                                        ),
                   ),
                 ],
               ),
@@ -266,28 +248,21 @@ class _AmrapScreenState extends State<AmrapScreen> {
             if (!_isTimerStarted)
               FloatingActionButton.extended(
                 heroTag: 'start_button',
-
                 onPressed: _startTimer,
-
                 label: const Text('Start'),
-
                 icon: const Icon(Icons.play_arrow),
               )
             else if (_isFinished)
               FloatingActionButton.extended(
                 heroTag: 'reset_button_finished',
-
                 onPressed: _resetTimer,
-
                 label: const Text('Reset'),
-
                 icon: const Icon(Icons.refresh),
               )
             else ...[
               if (!_isCountdown) ...[
                 FloatingActionButton.extended(
                   heroTag: 'pause_resume_button',
-
                   onPressed: () {
                     if (_isTimerActive) {
                       _pauseTimer();
@@ -297,7 +272,6 @@ class _AmrapScreenState extends State<AmrapScreen> {
                   },
 
                   label: Text(_isTimerActive ? 'Pause' : 'Resume'),
-
                   icon: Icon(_isTimerActive ? Icons.pause : Icons.play_arrow),
                 ),
 
@@ -305,11 +279,8 @@ class _AmrapScreenState extends State<AmrapScreen> {
 
                 FloatingActionButton(
                   heroTag: 'reset_button_active',
-
                   onPressed: _resetTimer,
-
                   tooltip: 'Reset',
-
                   child: const Icon(Icons.refresh),
                 ),
               ],

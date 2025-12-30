@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:flutter/services.dart';
+import 'package:super_awesome_workout_timer/configs/constants.dart';
 import 'package:super_awesome_workout_timer/services/sound_effects.dart';
 import 'package:super_awesome_workout_timer/widgets/wheel_selector.dart';
 
@@ -14,7 +15,7 @@ class EmomScreen extends StatefulWidget {
 
 class _EmomScreenState extends State<EmomScreen> {
   // --- Settings ---
-  int _initialMinutes = 10;
+  int _initialMinutes = AppConstants.defaultEmomMinutes;
 
   // --- State ---
   Timer? _mainTimer;
@@ -27,7 +28,7 @@ class _EmomScreenState extends State<EmomScreen> {
   // --- Countdown State ---
   Timer? _countdownTimer;
   bool _isCountdown = false;
-  int _countdownSeconds = 10;
+  int _countdownSeconds = AppConstants.defaultCountdownSeconds;
 
   // --- Controllers & Players ---
   late FixedExtentScrollController _minutesController;
@@ -55,7 +56,7 @@ class _EmomScreenState extends State<EmomScreen> {
     setState(() {
       _isTimerStarted = true;
       _isCountdown = true;
-      _countdownSeconds = 10;
+      _countdownSeconds = AppConstants.defaultCountdownSeconds;
     });
     _startCountdown();
   }
@@ -173,7 +174,7 @@ class _EmomScreenState extends State<EmomScreen> {
 
                     style: Theme.of(
                       context,
-                    ).textTheme.displayLarge?.copyWith(fontSize: 150),
+                    ).textTheme.displayLarge?.copyWith(fontSize: AppConstants.countdownFontSize),
                   ),
                 ],
               )
@@ -214,7 +215,7 @@ class _EmomScreenState extends State<EmomScreen> {
                     '$_secondsRemainingInMinute',
 
                     style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      fontSize: 150,
+                      fontSize: AppConstants.timerFontSizeExtraLarge,
 
                       color: _isFinished ? Colors.red : null,
                     ),

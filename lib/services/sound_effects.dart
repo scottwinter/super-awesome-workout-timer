@@ -1,4 +1,5 @@
 import 'package:flutter_soloud/flutter_soloud.dart';
+import 'package:super_awesome_workout_timer/configs/constants.dart';
 
 enum SoundEffect {
   beep,
@@ -21,14 +22,14 @@ class SoundEffects {
 
     _soloud = SoLoud.instance;
     await _soloud.init();
-    _soloud.setGlobalVolume(4.0);
+    _soloud.setGlobalVolume(AppConstants.globalVolume);
     await _loadSounds();
     _isInitialized = true;
   }
 
   Future<void> _loadSounds() async {
-    _beepSound = await _soloud.loadAsset('assets/sounds/count-beep.mp3');
-    _goSound = await _soloud.loadAsset('assets/sounds/go-beep.mp3');
+    _beepSound = await _soloud.loadAsset(AppConstants.beepSoundPath);
+    _goSound = await _soloud.loadAsset(AppConstants.goSoundPath);
   }
 
   void play(SoundEffect sound) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:super_awesome_workout_timer/configs/constants.dart';
 import 'package:super_awesome_workout_timer/services/sound_effects.dart';
 import 'package:super_awesome_workout_timer/widgets/wheel_selector.dart';
 
@@ -13,7 +14,7 @@ class PyramidScreen extends StatefulWidget {
 
 class _PyramidScreenState extends State<PyramidScreen> {
   // --- Settings ---
-  int _peakRound = 10;
+  int _peakRound = AppConstants.defaultPyramidPeakRound;
 
   // --- State ---
   Timer? _timer;
@@ -32,7 +33,7 @@ class _PyramidScreenState extends State<PyramidScreen> {
   // --- Countdown State ---
   Timer? _countdownTimer;
   bool _isCountdown = false;
-  int _countdownSeconds = 10;
+  int _countdownSeconds = AppConstants.defaultCountdownSeconds;
 
   // --- Controllers & Players ---
   late FixedExtentScrollController _peakRoundController;
@@ -61,7 +62,7 @@ class _PyramidScreenState extends State<PyramidScreen> {
     setState(() {
       _isTimerStarted = true;
       _isCountdown = true;
-      _countdownSeconds = 10;
+      _countdownSeconds = AppConstants.defaultCountdownSeconds;
     });
     _startCountdown();
   }
@@ -202,7 +203,7 @@ class _PyramidScreenState extends State<PyramidScreen> {
                   Text(
                     '$_countdownSeconds',
                     style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                          fontSize: 150,
+                          fontSize: AppConstants.countdownFontSize,
                         ),
                   ),
                 ],
@@ -215,7 +216,7 @@ class _PyramidScreenState extends State<PyramidScreen> {
                     label: 'Set the Top of the Pyramid',
                     controller: _peakRoundController,
                     maxValue: 20,
-                    magnification: 1.7,
+                    magnification: AppConstants.pyramidWheelMagnification,
                     onSelectedItemChanged: (value) {
                       setState(() {
                         _peakRound = value;
@@ -244,7 +245,7 @@ class _PyramidScreenState extends State<PyramidScreen> {
                       _formatTime(_elapsedSeconds),
                       style:
                           Theme.of(context).textTheme.displayLarge?.copyWith(
-                                fontSize: 80,
+                                fontSize: AppConstants.timerFontSizeMedium,
                                 color: _isFinished ? Colors.red : null,
                               ),
                     ),

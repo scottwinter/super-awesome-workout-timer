@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:super_awesome_workout_timer/configs/constants.dart';
 import 'package:super_awesome_workout_timer/screens/amrap_screen.dart';
 import 'package:super_awesome_workout_timer/screens/emom_screen.dart';
 import 'package:super_awesome_workout_timer/screens/fortime_screen.dart';
@@ -13,7 +14,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Super Awesome Workout Timer'),
+        title: const Text(AppConstants.appTitle),
         centerTitle: true,
       ),
       body: GridView.count(

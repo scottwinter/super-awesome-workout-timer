@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:super_awesome_workout_timer/configs/constants.dart';
 import 'package:super_awesome_workout_timer/services/sound_effects.dart';
 import 'package:super_awesome_workout_timer/widgets/wheel_selector.dart';
 
@@ -15,9 +16,9 @@ class TabataScreen extends StatefulWidget {
 
 class _TabataScreenState extends State<TabataScreen> {
   // --- Settings ---
-  int _initialWorkSeconds = 20;
-  int _initialRestSeconds = 10;
-  int _initialRounds = 8;
+  int _initialWorkSeconds = AppConstants.defaultTabataWorkSeconds;
+  int _initialRestSeconds = AppConstants.defaultTabataRestSeconds;
+  int _initialRounds = AppConstants.defaultTabataRounds;
 
   // --- State ---
   Timer? _timer;
@@ -28,7 +29,7 @@ class _TabataScreenState extends State<TabataScreen> {
   // --- Countdown State ---
   Timer? _countdownTimer;
   bool _isCountdown = false;
-  int _countdownSeconds = 10;
+  int _countdownSeconds = AppConstants.defaultCountdownSeconds;
 
   // --- Controllers & Players ---
   late FixedExtentScrollController _workController;
@@ -71,7 +72,7 @@ class _TabataScreenState extends State<TabataScreen> {
     setState(() {
       _isCountdown = true;
 
-      _countdownSeconds = 10;
+      _countdownSeconds = AppConstants.defaultCountdownSeconds;
     });
 
     _startCountdown();
@@ -209,7 +210,7 @@ class _TabataScreenState extends State<TabataScreen> {
 
                     style: Theme.of(
                       context,
-                    ).textTheme.displayLarge?.copyWith(fontSize: 150),
+                    ).textTheme.displayLarge?.copyWith(fontSize: AppConstants.countdownFontSize),
                   ),
                 ],
               )
@@ -271,7 +272,7 @@ class _TabataScreenState extends State<TabataScreen> {
                     '$_secondsRemaining',
 
                     style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      fontSize: 150,
+                      fontSize: AppConstants.timerFontSizeExtraLarge,
 
                       color: phaseColor,
                     ),
