@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:flutter/services.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
-import 'package:flutter_soloud/flutter_soloud.dart';
+import 'package:super_awesome_workout_timer/services/sound_effects.dart';
+import 'package:super_awesome_workout_timer/widgets/wheel_selector.dart';
 
 class PyramidScreen extends StatefulWidget {
   const PyramidScreen({super.key});
@@ -36,29 +36,14 @@ class _PyramidScreenState extends State<PyramidScreen> {
 
   // --- Controllers & Players ---
   late FixedExtentScrollController _peakRoundController;
-  late final SoLoud _soloud;
-  AudioSource? _beepSound;
-  AudioSource? _goSound;
 
   @override
   void initState() {
     super.initState();
-    _initSoLoud();
+    SoundEffects().init();
     // Let's allow setting a peak round up to 20.
     _peakRoundController =
         FixedExtentScrollController(initialItem: 20 - _peakRound);
-  }
-
-  Future<void> _initSoLoud() async {
-    _soloud = SoLoud.instance;
-    await _soloud.init();
-    _soloud.setGlobalVolume(4.0);
-    await _loadSounds();
-  }
-
-  Future<void> _loadSounds() async {
-    _beepSound = await _soloud.loadAsset('assets/sounds/count-beep.mp3');
-    _goSound = await _soloud.loadAsset('assets/sounds/go-beep.mp3');
   }
 
   @override
@@ -67,21 +52,9 @@ class _PyramidScreenState extends State<PyramidScreen> {
     _flashTimer?.cancel();
     _countdownTimer?.cancel();
     _peakRoundController.dispose();
-    _soloud.deinit();
+    SoundEffects().dispose();
     WakelockPlus.disable();
     super.dispose();
-  }
-
-  void _playSound(String soundPath) async {
-    if (soundPath.contains('count-beep')) {
-      if (_beepSound != null) {
-        _soloud.play(_beepSound!);
-      }
-    } else if (soundPath.contains('go-beep')) {
-      if (_goSound != null) {
-        _soloud.play(_goSound!);
-      }
-    }
   }
 
   void _startTimer() {
@@ -98,13 +71,13 @@ class _PyramidScreenState extends State<PyramidScreen> {
       if (_countdownSeconds > 1) {
         if (_countdownSeconds <= 4) {
           // Beep for 3, 2, 1
-          _playSound('sounds/count-beep.mp3');
+          SoundEffects().play(SoundEffect.beep);
         } 
         setState(() => _countdownSeconds--);
       } else {
         _countdownTimer?.cancel();
         setState(() => _isCountdown = false);
-        _playSound('sounds/go-beep.mp3');
+        SoundEffects().play(SoundEffect.go);
         _startMainTimer();
       }
     });
@@ -238,37 +211,16 @@ class _PyramidScreenState extends State<PyramidScreen> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Set the Top of the Pyramid',
-                      style: Theme.of(context).textTheme.titleLarge),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    height: 150,
-                    width: 100,
-                    child: ListWheelScrollView.useDelegate(
-                      useMagnifier: true,
-                      magnification: 1.7,
-                      diameterRatio: 1.3,
-                      perspective: 0.002,
-                      overAndUnderCenterOpacity: 0.5,
-                      controller: _peakRoundController,
-                      itemExtent: 50,
-                      physics: const FixedExtentScrollPhysics(),
-                      onSelectedItemChanged: (index) {
-                        HapticFeedback.selectionClick();
-                        setState(() {
-                          // Max value is 20, so we subtract from that.
-                          _peakRound = 20 - index;
-                        });
-                      },
-                      childDelegate: ListWheelChildBuilderDelegate(
-                        builder: (context, index) => Center(
-                          child: Text('${20 - index}',
-                              style:
-                                  Theme.of(context).textTheme.headlineMedium),
-                        ),
-                        childCount: 20, // Allows setting peak from 1 to 20
-                      ),
-                    ),
+                  WheelSelector(
+                    label: 'Set the Top of the Pyramid',
+                    controller: _peakRoundController,
+                    maxValue: 20,
+                    magnification: 1.7,
+                    onSelectedItemChanged: (value) {
+                      setState(() {
+                        _peakRound = value;
+                      });
+                    },
                   ),
                 ],
               )

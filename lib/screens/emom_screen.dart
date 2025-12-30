@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_soloud/flutter_soloud.dart';
+import 'package:super_awesome_workout_timer/services/sound_effects.dart';
+import 'package:super_awesome_workout_timer/widgets/wheel_selector.dart';
 
 class EmomScreen extends StatefulWidget {
   const EmomScreen({super.key});
@@ -30,29 +31,14 @@ class _EmomScreenState extends State<EmomScreen> {
 
   // --- Controllers & Players ---
   late FixedExtentScrollController _minutesController;
-  late final SoLoud _soloud;
-  AudioSource? _beepSound;
-  AudioSource? _goSound;
 
   @override
   void initState() {
     super.initState();
-    _initSoLoud();
+    SoundEffects().init();
     _minutesController = FixedExtentScrollController(
       initialItem: 30 - _initialMinutes,
     );
-  }
-
-  Future<void> _initSoLoud() async {
-    _soloud = SoLoud.instance;
-    await _soloud.init();
-    _soloud.setGlobalVolume(4.0);
-    await _loadSounds();
-  }
-
-  Future<void> _loadSounds() async {
-    _beepSound = await _soloud.loadAsset('assets/sounds/count-beep.mp3');
-    _goSound = await _soloud.loadAsset('assets/sounds/go-beep.mp3');
   }
 
   @override
@@ -60,21 +46,9 @@ class _EmomScreenState extends State<EmomScreen> {
     _mainTimer?.cancel();
     _countdownTimer?.cancel();
     _minutesController.dispose();
-    _soloud.deinit();
+    SoundEffects().dispose();
     WakelockPlus.disable();
     super.dispose();
-  }
-
-  void _playSound(String soundPath) async {
-    if (soundPath.contains('count-beep')) {
-      if (_beepSound != null) {
-        _soloud.play(_beepSound!);
-      }
-    } else if (soundPath.contains('go-beep')) {
-      if (_goSound != null) {
-        _soloud.play(_goSound!);
-      }
-    }
   }
 
   void _startTimer() {
@@ -91,13 +65,13 @@ class _EmomScreenState extends State<EmomScreen> {
       if (_countdownSeconds > 1) {
         if (_countdownSeconds <= 4) {
           // Beep for 3, 2, 1
-          _playSound('sounds/count-beep.mp3');
+          SoundEffects().play(SoundEffect.beep);
         }
         setState(() => _countdownSeconds--);
       } else {
         _countdownTimer?.cancel();
         setState(() => _isCountdown = false);
-        _playSound('sounds/go-beep.mp3');
+        SoundEffects().play(SoundEffect.go);
         _startMainTimer();
       }
     });
@@ -149,12 +123,12 @@ class _EmomScreenState extends State<EmomScreen> {
       if (_secondsRemainingInMinute > 1) {
         if (_secondsRemainingInMinute <= 4) {
           // Beep for 3, 2, 1
-          _playSound('sounds/count-beep.mp3');
+          SoundEffects().play(SoundEffect.beep);
         }
         setState(() => _secondsRemainingInMinute--);
       } else {
         // End of a minute
-        _playSound('sounds/go-beep.mp3');
+        SoundEffects().play(SoundEffect.go);
         if (_currentMinute < _initialMinutes) {
           setState(() {
             _currentMinute++;
@@ -213,47 +187,15 @@ class _EmomScreenState extends State<EmomScreen> {
                   ),
 
                   const SizedBox(height: 20),
-                  Text(
-                    'Set Duration (minutes)',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    height: 150,
-                    width: 100,
-                    child: ListWheelScrollView.useDelegate(
-                      useMagnifier: true,
-                      magnification: 1.3,
-                      diameterRatio: 1.3,
-                      perspective: 0.002,
-
-                      overAndUnderCenterOpacity: 0.5,
-
-                      controller: _minutesController,
-
-                      itemExtent: 50,
-
-                      physics: const FixedExtentScrollPhysics(),
-
-                      onSelectedItemChanged: (index) => setState(() {
-                        HapticFeedback.selectionClick();
-
-                        _initialMinutes = 30 - index;
-                      }),
-
-                      childDelegate: ListWheelChildBuilderDelegate(
-                        builder: (context, index) => Center(
-                          child: Text(
-                            '${30 - index}',
-
-                            style: Theme.of(context).textTheme.headlineMedium,
-                          ),
-                        ),
-
-                        childCount: 30,
-                      ),
-                    ),
+                  WheelSelector(
+                    label: 'Set Duration (minutes)',
+                    controller: _minutesController,
+                    maxValue: 30,
+                    onSelectedItemChanged: (value) {
+                      setState(() {
+                        _initialMinutes = value;
+                      });
+                    },
                   ),
                 ],
               )

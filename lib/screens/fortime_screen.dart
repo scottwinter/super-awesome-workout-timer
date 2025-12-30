@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:wakelock_plus/wakelock_plus.dart';
-import 'package:flutter_soloud/flutter_soloud.dart';
+import 'package:super_awesome_workout_timer/services/sound_effects.dart';
 
 class ForTimeScreen extends StatefulWidget {
   const ForTimeScreen({super.key});
@@ -21,47 +21,20 @@ class _ForTimeScreenState extends State<ForTimeScreen> {
   bool _isCountdown = false;
   int _countdownSeconds = 10;
   bool _isTimerStarted = false; // To track if the timer has ever been started
-  late final SoLoud _soloud;
-  AudioSource? _beepSound;
-  AudioSource? _goSound;
 
   @override
   void initState() {
     super.initState();
-    _initSoLoud();
-  }
-
-  Future<void> _initSoLoud() async {
-    _soloud = SoLoud.instance;
-    await _soloud.init();
-    _soloud.setGlobalVolume(4.0);
-    await _loadSounds();
-  }
-
-  Future<void> _loadSounds() async {
-    _beepSound = await _soloud.loadAsset('assets/sounds/count-beep.mp3');
-    _goSound = await _soloud.loadAsset('assets/sounds/go-beep.mp3');
+    SoundEffects().init();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     _countdownTimer?.cancel();
-    _soloud.deinit();
+    SoundEffects().dispose();
     WakelockPlus.disable();
     super.dispose();
-  }
-
-  void _playSound(String soundPath) async {
-    if (soundPath.contains('count-beep')) {
-      if (_beepSound != null) {
-        _soloud.play(_beepSound!);
-      }
-    } else if (soundPath.contains('go-beep')) {
-      if (_goSound != null) {
-        _soloud.play(_goSound!);
-      }
-    }
   }
 
   void _startTimer() {
@@ -78,13 +51,13 @@ class _ForTimeScreenState extends State<ForTimeScreen> {
       if (_countdownSeconds > 1) {
         if (_countdownSeconds <= 4) {
           // Beep for 3, 2, 1
-          _playSound('sounds/count-beep.mp3');
+          SoundEffects().play(SoundEffect.beep);
         } 
         setState(() => _countdownSeconds--);
       } else {
         _countdownTimer?.cancel();
         setState(() => _isCountdown = false);
-        _playSound('sounds/go-beep.mp3');
+        SoundEffects().play(SoundEffect.go);
         _toggleTimer(); // This will now start the main timer
       }
     });

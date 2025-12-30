@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:wakelock_plus/wakelock_plus.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_soloud/flutter_soloud.dart';
+import 'package:super_awesome_workout_timer/services/sound_effects.dart';
+import 'package:super_awesome_workout_timer/widgets/wheel_selector.dart';
 
 enum TabataPhase { initial, work, rest, finished }
 
@@ -34,14 +34,11 @@ class _TabataScreenState extends State<TabataScreen> {
   late FixedExtentScrollController _workController;
   late FixedExtentScrollController _restController;
   late FixedExtentScrollController _roundsController;
-  late final SoLoud _soloud;
-  AudioSource? _beepSound;
-  AudioSource? _goSound;
 
   @override
   void initState() {
     super.initState();
-    _initSoLoud();
+    SoundEffects().init();
 
     _secondsRemaining = _initialWorkSeconds;
 
@@ -58,18 +55,6 @@ class _TabataScreenState extends State<TabataScreen> {
     );
   }
 
-  Future<void> _initSoLoud() async {
-    _soloud = SoLoud.instance;
-    await _soloud.init();
-    _soloud.setGlobalVolume(4.0);
-    await _loadSounds();
-  }
-
-  Future<void> _loadSounds() async {
-    _beepSound = await _soloud.loadAsset('assets/sounds/count-beep.mp3');
-    _goSound = await _soloud.loadAsset('assets/sounds/go-beep.mp3');
-  }
-
   @override
   void dispose() {
     _timer?.cancel();
@@ -77,22 +62,9 @@ class _TabataScreenState extends State<TabataScreen> {
     _workController.dispose();
     _restController.dispose();
     _roundsController.dispose();
-    _soloud.deinit();
+    SoundEffects().dispose();
     WakelockPlus.disable();
     super.dispose();
-  }
-
-
-  void _playSound(String soundPath) async {
-    if (soundPath.contains('count-beep')) {
-      if (_beepSound != null) {
-        _soloud.play(_beepSound!);
-      }
-    } else if (soundPath.contains('go-beep')) {
-      if (_goSound != null) {
-        _soloud.play(_goSound!);
-      }
-    }
   }
 
   void _startTimer() {
@@ -110,13 +82,13 @@ class _TabataScreenState extends State<TabataScreen> {
       if (_countdownSeconds > 1) {
         if (_countdownSeconds <= 4) {
           // Beep for 3, 2, 1
-          _playSound('sounds/count-beep.mp3');
-        } 
+          SoundEffects().play(SoundEffect.beep);
+        }
         setState(() => _countdownSeconds--);
       } else {
         _countdownTimer?.cancel();
         setState(() => _isCountdown = false);
-        _playSound('sounds/go-beep.mp3');
+        SoundEffects().play(SoundEffect.go);
         _startMainTimer();
       }
     });
@@ -172,7 +144,7 @@ class _TabataScreenState extends State<TabataScreen> {
       if (_secondsRemaining > 1) {
         setState(() => _secondsRemaining--);
         if (_secondsRemaining <= 3) {
-          _playSound('sounds/count-beep.mp3');
+          SoundEffects().play(SoundEffect.beep);
         }
       } else {
         // Timer finished, decide next phase
@@ -180,7 +152,7 @@ class _TabataScreenState extends State<TabataScreen> {
         if (_currentPhase == TabataPhase.work) {
           if (_currentRound < _initialRounds) {
             // Go to Rest
-            _playSound('sounds/go-beep.mp3');
+            SoundEffects().play(SoundEffect.go);
             setState(() {
               _currentPhase = TabataPhase.rest;
 
@@ -194,7 +166,7 @@ class _TabataScreenState extends State<TabataScreen> {
           }
         } else if (_currentPhase == TabataPhase.rest) {
           // Go to next Work round
-          _playSound('sounds/go-beep.mp3');
+          SoundEffects().play(SoundEffect.go);
           setState(() {
             _currentRound++;
 
@@ -205,66 +177,6 @@ class _TabataScreenState extends State<TabataScreen> {
         }
       }
     });
-  }
-
-  Widget _buildPicker({
-    required String label,
-
-    required FixedExtentScrollController controller,
-
-    required int maxValue,
-
-    required ValueChanged<int> onSelectedItemChanged,
-  }) {
-    return Column(
-      children: [
-        Text(label, style: Theme.of(context).textTheme.titleMedium),
-
-        const SizedBox(height: 8),
-
-        SizedBox(
-          height: 100,
-
-          width: 70,
-
-          child: ListWheelScrollView.useDelegate(
-            useMagnifier: true,
-
-            magnification: 1.3,
-
-            diameterRatio: 1.3,
-
-            perspective: 0.002,
-
-            overAndUnderCenterOpacity: 0.5,
-
-            controller: controller,
-
-            itemExtent: 40,
-
-            physics: const FixedExtentScrollPhysics(),
-
-            onSelectedItemChanged: (index) {
-              HapticFeedback.selectionClick();
-
-              onSelectedItemChanged(maxValue - index);
-            },
-
-            childDelegate: ListWheelChildBuilderDelegate(
-              builder: (context, index) => Center(
-                child: Text(
-                  '${maxValue - index}',
-
-                  style: const TextStyle(fontSize: 24),
-                ),
-              ),
-
-              childCount: maxValue,
-            ),
-          ),
-        ),
-      ],
-    );
   }
 
   @override
@@ -306,41 +218,41 @@ class _TabataScreenState extends State<TabataScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
 
                 children: [
-                  _buildPicker(
+                  WheelSelector(
                     label: 'Work',
-
                     controller: _workController,
-
                     maxValue: 60,
-
                     onSelectedItemChanged: (value) => setState(() {
                       _initialWorkSeconds = value == 0 ? 1 : value;
-
                       _secondsRemaining = _initialWorkSeconds;
                     }),
+                    height: 100,
+                    width: 70,
+                    itemExtent: 40,
+                    textStyle: const TextStyle(fontSize: 24),
                   ),
-
-                  _buildPicker(
+                  WheelSelector(
                     label: 'Rest',
-
                     controller: _restController,
-
                     maxValue: 60,
-
                     onSelectedItemChanged: (value) => setState(
                       () => _initialRestSeconds = value == 0 ? 1 : value,
                     ),
+                    height: 100,
+                    width: 70,
+                    itemExtent: 40,
+                    textStyle: const TextStyle(fontSize: 24),
                   ),
-
-                  _buildPicker(
+                  WheelSelector(
                     label: 'Rounds',
-
                     controller: _roundsController,
-
                     maxValue: 20,
-
                     onSelectedItemChanged: (value) =>
                         setState(() => _initialRounds = value == 0 ? 1 : value),
+                    height: 100,
+                    width: 70,
+                    itemExtent: 40,
+                    textStyle: const TextStyle(fontSize: 24),
                   ),
                 ],
               )
@@ -388,7 +300,8 @@ class _TabataScreenState extends State<TabataScreen> {
 
           children: [
             if ((_currentPhase == TabataPhase.initial ||
-                _currentPhase == TabataPhase.finished) && !_isCountdown)
+                    _currentPhase == TabataPhase.finished) &&
+                !_isCountdown)
               FloatingActionButton.extended(
                 heroTag: 'start_button',
 
